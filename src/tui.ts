@@ -81,7 +81,7 @@ async function main() {
     await runContainerAgent(
       GROUP,
       {
-        prompt: formatMessages([msg]),
+        prompt: formatMessages([msg], Intl.DateTimeFormat().resolvedOptions().timeZone),
         sessionId,
         groupFolder: TUI_FOLDER,
         chatJid: TUI_JID,
