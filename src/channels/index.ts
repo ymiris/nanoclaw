@@ -10,5 +10,6 @@ import './discord.js';
 
 // telegram
 import './telegram.js';
+import './telegram-agents.js';
 
 // whatsapp
