@@ -227,17 +227,33 @@ function buildContainerArgs(
   mounts: VolumeMount[],
   containerName: string,
 ): string[] {
-  const args: string[] = ['run', '-i', '--rm', '--name', containerName];
+  const args: string[] = [
+    'run',
+    '-i',
+    '--rm',
+    '--name',
+    containerName,
+    '--security-opt',
+    'label=disable',
+  ];
 
   // Pass host timezone so container's local time matches the user's
   args.push('-e', `TZ=${TIMEZONE}`);
 
-  // Run as host user so bind-mounted files are accessible.
-  // Skip when running as root (uid 0), as the container's node user (uid 1000),
-  // or when getuid is unavailable (native Windows without WSL).
+  // Run as the correct user so bind-mounted files are writable.
+  //
+  // Podman rootless: by default the host user maps to UID 0 inside the
+  // container's user namespace, but --dangerously-skip-permissions refuses
+  // to run as root. --userns=keep-id remaps the host user to the same UID
+  // inside the container (1000→1000), so the node user can write host files.
+  //
+  // Docker uses direct UID mapping, so we pass the host UID explicitly for
+  // any non-root, non-node host user.
   const hostUid = process.getuid?.();
   const hostGid = process.getgid?.();
-  if (hostUid != null && hostUid !== 0 && hostUid !== 1000) {
+  if (CONTAINER_RUNTIME_BIN === 'podman') {
+    args.push('--userns=keep-id');
+  } else if (hostUid != null && hostUid !== 0 && hostUid !== 1000) {
     args.push('--user', `${hostUid}:${hostGid}`);
     args.push('-e', 'HOME=/home/node');
   }
