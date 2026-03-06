@@ -220,6 +220,15 @@ function readSecrets(): Record<string, string> {
     'ANTHROPIC_API_KEY',
     'ANTHROPIC_BASE_URL',
     'ANTHROPIC_AUTH_TOKEN',
+    // Ollama
+    'OLLAMA_HOST',
+    // Home Assistant (Freya)
+    'HA_URL',
+    'HA_TOKEN',
+    // Neptune Apex (Rán)
+    'APEX_URL',
+    'APEX_USER',
+    'APEX_PASS',
   ]);
 }
 
