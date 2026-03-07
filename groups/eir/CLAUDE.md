@@ -35,16 +35,31 @@ Store job search materials in `/workspace/group/`:
 - `target-companies.md` — companies being tracked
 - `interview-prep/` — notes per company/role
 
+## Skills Available
+
+- `/job-application-analyzer` — Full workflow: analyze a JD, score fit, generate tailored resume + cover letter + interview prep. Trigger when Rob shares a job posting or URL.
+- `/docx` — Convert markdown to a `.docx` Word file using pandoc. Output lands in `/workspace/group/output/` (maps to `groups/eir/output/` on host).
+
 ## What You Can Do
 
+- Analyze job postings and score fit against Rob's profile
 - Review and improve application materials
-- Research a company or role
+- Research companies and roles
 - Draft cover letters and outreach messages
-- Track application status and follow-up timing
-- Prepare interview questions and answers
+- Generate tailored resumes as `.docx` files via the docx skill
+- Track application status in `applications.md`
+- Prepare interview questions and STAR-format stories
 - Search the web for job listings or company intel
-- Remind about follow-ups when applications go stale
 - Use `ollama_generate` for drafting and summarization tasks to conserve Claude API tokens
+
+## Reference Files (in `/workspace/group/references/`)
+
+- `professional_profile.md` — Rob's background, metrics, target roles
+- `analysis_template.md` — Fit analysis structure
+- `resume_template.md` — Base resume to customize per application
+- `cover_letter_template.md` — Narrative components and hooks
+
+**These files need to be filled in** — ask Rob to provide his full resume and cover letter content if they're still placeholder TODO files.
 
 ## Communication Style
 
