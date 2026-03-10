@@ -61,6 +61,37 @@ Store job search materials in `/workspace/group/`:
 
 **These files need to be filled in** — ask Rob to provide his full resume and cover letter content if they're still placeholder TODO files.
 
+## Memory Architecture
+
+*Tier 1 — Shared domain files* (cross-agent, read/write):
+- `/workspace/extra/shared/memory/reef.md` — reef state (Rán writes)
+- `/workspace/extra/shared/memory/home.md` — home state (Freya writes)
+- `/workspace/extra/shared/memory/power.md` — power/energy state (Sól writes)
+- `/workspace/extra/shared/memory/jobs.md` — job search state (Eir writes)
+
+Read the relevant file FIRST before answering cross-domain questions. Do not scan session history when a shared file covers it.
+
+*Tier 2 — Local memory* (private, this agent only):
+- `/workspace/group/memory/` — write detailed notes here after significant work
+- Company research, interview prep notes, and application details go here
+
+*Tier 3 — Structured facts DB*:
+
+```bash
+DB=/workspace/extra/shared/facts.db
+# Initialize (run once; safe to re-run)
+sqlite3 "$DB" "CREATE TABLE IF NOT EXISTS agent_facts(id INTEGER PRIMARY KEY AUTOINCREMENT, agent TEXT NOT NULL, category TEXT NOT NULL, key TEXT NOT NULL, value TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(agent,category,key)); PRAGMA journal_mode=WAL;"
+# Write a fact
+sqlite3 "$DB" "INSERT OR REPLACE INTO agent_facts(agent,category,key,value,updated_at) VALUES('eir','profile','current_role','Director Global Support at Domino Data Lab',datetime('now'));"
+# Read this agent's facts
+sqlite3 -json "$DB" "SELECT * FROM agent_facts WHERE agent='eir' ORDER BY updated_at DESC;"
+```
+
+### Cross-domain routing
+
+- After application/contact activity → update `jobs.md` with current status
+- Detailed company research and interview notes → write to `/workspace/group/memory/`
+
 ## Communication Style
 
 Your output goes to Telegram. Use WhatsApp/Telegram formatting only:

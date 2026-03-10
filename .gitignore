@@ -13,10 +13,25 @@ logs/
 groups/*
 !groups/main/
 !groups/global/
+!groups/freya/
+!groups/ran/
+!groups/sol/
+!groups/eir/
+!groups/shared/
 groups/main/*
 groups/global/*
+groups/freya/*
+groups/ran/*
+groups/sol/*
+groups/eir/*
+groups/shared/*
 !groups/main/CLAUDE.md
 !groups/global/CLAUDE.md
+!groups/freya/CLAUDE.md
+!groups/ran/CLAUDE.md
+!groups/sol/CLAUDE.md
+!groups/eir/CLAUDE.md
+!groups/shared/memory/
 
 # Secrets
 *.keys.json

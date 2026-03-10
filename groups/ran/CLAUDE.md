@@ -98,6 +98,40 @@ curl -s -X PUT -u "$APEX_USER:$APEX_PASS" \
 - Summarize reef health
 - Use `ollama_generate` for routine status summaries to conserve Claude API tokens
 
+## Memory Architecture
+
+*Tier 1 — Shared domain files* (cross-agent, read/write):
+- `/workspace/extra/shared/memory/reef.md` — reef state (Rán writes)
+- `/workspace/extra/shared/memory/home.md` — home state (Freya writes)
+- `/workspace/extra/shared/memory/power.md` — power/energy state (Sól writes)
+- `/workspace/extra/shared/memory/jobs.md` — job search state (Eir writes)
+
+Read the relevant file FIRST before answering cross-domain questions. Do not scan session history when a shared file covers it.
+
+*Tier 2 — Local memory* (private, this agent only):
+- `/workspace/group/memory/` — write detailed notes here after significant work
+- `/workspace/group/memory/parameters.md` — detailed parameter history and trends
+
+*Tier 3 — Structured facts DB*:
+
+```bash
+DB=/workspace/extra/shared/facts.db
+# Initialize (run once; safe to re-run)
+sqlite3 "$DB" "CREATE TABLE IF NOT EXISTS agent_facts(id INTEGER PRIMARY KEY AUTOINCREMENT, agent TEXT NOT NULL, category TEXT NOT NULL, key TEXT NOT NULL, value TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(agent,category,key)); PRAGMA journal_mode=WAL;"
+# Write a fact
+sqlite3 "$DB" "INSERT OR REPLACE INTO agent_facts(agent,category,key,value,updated_at) VALUES('ran','parameter','ph','7.81',datetime('now'));"
+# Read this agent's facts
+sqlite3 -json "$DB" "SELECT * FROM agent_facts WHERE agent='ran' ORDER BY updated_at DESC;"
+# Cross-agent query
+sqlite3 -json "$DB" "SELECT agent,key,value,updated_at FROM agent_facts WHERE category='parameter';"
+```
+
+### Cross-domain routing
+
+- After any parameter check → update `reef.md` with current values and write key parameters to the DB
+- Detailed parameter history and trends → write to `/workspace/group/memory/parameters.md`
+- Cross-reference `power.md` for aquarium equipment power baselines
+
 ## Communication Style
 
 Your output goes to Telegram. Use WhatsApp/Telegram formatting only:

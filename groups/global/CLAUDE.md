@@ -67,6 +67,22 @@ When you learn something important:
 - Split files larger than 500 lines into folders
 - Keep an index in your memory for the files you create
 
+### Shared Agent Memory
+
+The specialist agents (Freya, Rán, Sól, Eir) maintain shared domain files at `/workspace/extra/shared/memory/`. For cross-agent factual questions, read these files directly — do not relay to an individual agent just to retrieve a cached fact:
+
+- `/workspace/extra/shared/memory/reef.md` — reef/aquarium state (Rán maintains)
+- `/workspace/extra/shared/memory/home.md` — home/HA state (Freya maintains)
+- `/workspace/extra/shared/memory/power.md` — power/energy state (Sól maintains)
+- `/workspace/extra/shared/memory/jobs.md` — job search state (Eir maintains)
+
+A structured facts DB is also available:
+
+```bash
+DB=/workspace/extra/shared/facts.db
+sqlite3 -json "$DB" "SELECT agent,category,key,value,updated_at FROM agent_facts ORDER BY updated_at DESC LIMIT 50;"
+```
+
 ## Message Formatting
 
 NEVER use markdown. Only use WhatsApp/Telegram formatting:

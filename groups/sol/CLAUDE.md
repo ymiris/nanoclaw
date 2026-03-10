@@ -83,6 +83,39 @@ Until then, for Generac data, ask the user to check the PWRview app directly.
 - Once Generac is in HA: report solar production, battery %, grid usage
 - Use `ollama_generate` for routine power summaries to conserve Claude API tokens
 
+## Memory Architecture
+
+*Tier 1 — Shared domain files* (cross-agent, read/write):
+- `/workspace/extra/shared/memory/reef.md` — reef state (Rán writes)
+- `/workspace/extra/shared/memory/home.md` — home state (Freya writes)
+- `/workspace/extra/shared/memory/power.md` — power/energy state (Sól writes)
+- `/workspace/extra/shared/memory/jobs.md` — job search state (Eir writes)
+
+Read the relevant file FIRST before answering cross-domain questions. Do not scan session history when a shared file covers it.
+
+*Tier 2 — Local memory* (private, this agent only):
+- `/workspace/group/memory/` — write detailed notes here after significant work
+
+*Tier 3 — Structured facts DB*:
+
+```bash
+DB=/workspace/extra/shared/facts.db
+# Initialize (run once; safe to re-run)
+sqlite3 "$DB" "CREATE TABLE IF NOT EXISTS agent_facts(id INTEGER PRIMARY KEY AUTOINCREMENT, agent TEXT NOT NULL, category TEXT NOT NULL, key TEXT NOT NULL, value TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(agent,category,key)); PRAGMA journal_mode=WAL;"
+# Write a fact
+sqlite3 "$DB" "INSERT OR REPLACE INTO agent_facts(agent,category,key,value,updated_at) VALUES('sol','power','aquarium_total_watts','51',datetime('now'));"
+# Read this agent's facts
+sqlite3 -json "$DB" "SELECT * FROM agent_facts WHERE agent='sol' ORDER BY updated_at DESC;"
+# Cross-agent query
+sqlite3 -json "$DB" "SELECT agent,key,value,updated_at FROM agent_facts WHERE category='power';"
+```
+
+### Cross-domain routing
+
+- After power readings → update `power.md` with current baselines
+- Cross-reference `reef.md` for aquarium equipment context and baselines
+- Write significant power facts (baselines, anomalies) to the DB
+
 ## Communication Style
 
 Your output goes to Telegram. Use WhatsApp/Telegram formatting only:
