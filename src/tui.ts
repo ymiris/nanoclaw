@@ -6,6 +6,7 @@ import {
   setSession,
   setRegisteredGroup,
   getRegisteredGroup,
+  getAllRegisteredGroups,
   storeChatMetadata,
 } from './db.js';
 import { runContainerAgent } from './container-runner.js';
@@ -16,35 +17,62 @@ import { ASSISTANT_NAME } from './config.js';
 import type { RegisteredGroup, NewMessage } from './types.js';
 import type { ChildProcess } from 'child_process';
 
-const TUI_JID = 'tui:main';
-const TUI_FOLDER = 'tui_main';
-
-const GROUP: RegisteredGroup = {
-  name: 'TUI',
-  folder: TUI_FOLDER,
-  trigger: `@${ASSISTANT_NAME}`,
-  added_at: new Date().toISOString(),
-  requiresTrigger: false,
-  isMain: false,
-};
-
 async function main() {
   ensureContainerRuntimeRunning();
-
   initDatabase();
 
-  if (!getRegisteredGroup(TUI_JID)) {
-    const groupDir = resolveGroupFolderPath(TUI_FOLDER);
-    fs.mkdirSync(groupDir, { recursive: true });
-    setRegisteredGroup(TUI_JID, GROUP);
-    storeChatMetadata(TUI_JID, new Date().toISOString(), 'TUI', 'tui', false);
-    console.log(`[tui] First run — created groups/${TUI_FOLDER}/`);
-    console.log(
-      `[tui] Add a CLAUDE.md there to customise ${ASSISTANT_NAME}'s behaviour.\n`,
+  // Optional agent argument: npm run tui -- freya
+  const agentArg = process.argv[2]?.toLowerCase();
+
+  let tuiFolder: string;
+  let tuiJid: string;
+  let group: RegisteredGroup;
+  let displayName: string;
+
+  if (!agentArg || agentArg === 'main' || agentArg === 'summer') {
+    tuiFolder = 'tui_main';
+    tuiJid = 'tui:main';
+    displayName = ASSISTANT_NAME;
+    group = {
+      name: 'TUI',
+      folder: tuiFolder,
+      trigger: `@${ASSISTANT_NAME}`,
+      added_at: new Date().toISOString(),
+      requiresTrigger: false,
+      isMain: false,
+    };
+    if (!getRegisteredGroup(tuiJid)) {
+      const groupDir = resolveGroupFolderPath(tuiFolder);
+      fs.mkdirSync(groupDir, { recursive: true });
+      setRegisteredGroup(tuiJid, group);
+      storeChatMetadata(tuiJid, new Date().toISOString(), 'TUI', 'tui', false);
+      console.log(`[tui] First run — created groups/${tuiFolder}/`);
+      console.log(
+        `[tui] Add a CLAUDE.md there to customise ${ASSISTANT_NAME}'s behaviour.\n`,
+      );
+    }
+  } else {
+    // Find registered group by folder name
+    const allGroups = getAllRegisteredGroups();
+    const existing = Object.values(allGroups).find(
+      (g) => g.folder === agentArg,
     );
+    if (!existing) {
+      const available = Object.values(allGroups)
+        .map((g) => g.folder)
+        .filter((f) => f !== 'tui_main')
+        .join(', ');
+      console.error(`Unknown agent: "${agentArg}"`);
+      console.error(`Available agents: ${available || '(none registered)'}`);
+      process.exit(1);
+    }
+    tuiFolder = existing.folder;
+    tuiJid = `tui:${tuiFolder}`;
+    displayName = tuiFolder.charAt(0).toUpperCase() + tuiFolder.slice(1);
+    group = existing;
   }
 
-  let sessionId = getSession(TUI_FOLDER);
+  let sessionId = getSession(tuiFolder);
   let activeProc: ChildProcess | null = null;
 
   const rl = readline.createInterface({
@@ -54,7 +82,7 @@ async function main() {
     prompt: 'you: ',
   });
 
-  console.log(`Connected to ${ASSISTANT_NAME} (TUI). Ctrl+C to exit.\n`);
+  console.log(`Connected to ${displayName} (TUI). Ctrl+C to exit.\n`);
   rl.prompt();
 
   rl.on('line', async (line) => {
@@ -68,7 +96,7 @@ async function main() {
 
     const msg: NewMessage = {
       id: `tui-${Date.now()}`,
-      chat_jid: TUI_JID,
+      chat_jid: tuiJid,
       sender: 'user',
       sender_name: 'User',
       content: text,
@@ -76,17 +104,20 @@ async function main() {
       is_from_me: false,
     };
 
-    process.stdout.write(`\n${ASSISTANT_NAME}: `);
+    process.stdout.write(`\n${displayName}: `);
 
     await runContainerAgent(
-      GROUP,
+      group,
       {
-        prompt: formatMessages([msg], Intl.DateTimeFormat().resolvedOptions().timeZone),
+        prompt: formatMessages(
+          [msg],
+          Intl.DateTimeFormat().resolvedOptions().timeZone,
+        ),
         sessionId,
-        groupFolder: TUI_FOLDER,
-        chatJid: TUI_JID,
+        groupFolder: tuiFolder,
+        chatJid: tuiJid,
         isMain: false,
-        assistantName: ASSISTANT_NAME,
+        assistantName: displayName,
       },
       (proc) => {
         activeProc = proc;
@@ -94,7 +125,7 @@ async function main() {
       async (result) => {
         if (result.newSessionId) {
           sessionId = result.newSessionId;
-          setSession(TUI_FOLDER, result.newSessionId);
+          setSession(tuiFolder, result.newSessionId);
         }
         if (result.result) {
           const out = stripInternalTags(result.result).trim();
