@@ -15,6 +15,54 @@ allowed-tools: Bash, WebSearch, WebFetch
 
 Any model dimension exceeding the build volume must be split into interlocking sections.
 
+## Design Principles (Creality Guidelines)
+
+Apply these when generating or reviewing any model.
+
+### Wall Thickness
+- Optimal: **1–2 mm** for durability
+- Hollow out large solid models to save material and reduce print time
+- Thin walls below ~0.8mm (single nozzle width) may not print at all
+
+### Overhangs
+- Overhangs **≤ 45°** from vertical print fine unsupported
+- Overhangs **> 45°** need either support structures, model reorientation, or splitting into parts
+- Bridge overhangs (horizontal spans between two walls) can span ~50–80mm unsupported depending on material
+
+### Tolerances for Fit
+- **Tight fit / press fit:** +0.1mm clearance gap
+- **Loose fit / sliding fit:** +0.33mm clearance gap
+- For snap-fits or hinges, add clearance and use fillets to reduce stress
+
+### Stress & Strength
+- Add **fillets** (rounded inside corners) and **chamfers** (angled outside edges) at stress points — sharp inside corners crack
+- Layer lines are weakest in tension perpendicular to the layer — orient models so critical load paths run parallel to layers
+- Vertical prints (Z-axis) are weakest along layer lines; horizontal prints are strongest in-plane
+
+### Print Orientation
+- Choose orientation that minimizes overhangs, maximizes strength in the loaded direction, and fits within build volume
+- Flat on the bed = fastest, most stable; upright = best detail on sides but weaker
+
+### Minimum Features
+- Minimum wall: ~0.4–0.8mm (1–2× nozzle diameter)
+- Minimum hole diameter: ~2mm (smaller holes often close up)
+- Minimum embossed text height: ~0.6mm
+- Tiny details smaller than the nozzle diameter will not appear
+
+### Material Considerations
+- **PLA**: Easy to print, poor heat resistance (softens ~60°C). Good for decorative and low-stress parts.
+- **ABS**: Heat resistant, prone to warping — needs enclosure and heated bed
+- **PETG**: Good middle ground — stronger than PLA, less warping than ABS
+- Hollow out large models to reduce weight and avoid internal stress from differential cooling
+
+### Pre-export Checklist
+- Verify **manifold geometry** (no holes in the mesh, all normals pointing outward)
+- Check for **non-manifold edges** — slicer will fail or produce bad paths
+- Export as STL (binary preferred) or OBJ
+- Verify mesh in slicer before sending to print
+
+---
+
 ## Decision: Generate vs. Find
 
 | Request type | Approach |
