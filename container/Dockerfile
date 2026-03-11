@@ -26,7 +26,13 @@ RUN apt-get update && apt-get install -y \
     git \
     pandoc \
     sqlite3 \
+    python3-pip \
+    openscad \
+    xvfb \
     && rm -rf /var/lib/apt/lists/*
+
+# Python 3D modeling packages
+RUN pip3 install --no-cache-dir --break-system-packages trimesh numpy
 
 # Set Chromium path for agent-browser
 ENV AGENT_BROWSER_EXECUTABLE_PATH=/usr/bin/chromium
