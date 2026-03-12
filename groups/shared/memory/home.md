@@ -2,7 +2,7 @@
 
 *Owned and maintained by Freya. All agents may read.*
 
-Last updated: 2026-03-07
+Last updated: 2026-03-12
 
 ## Infrastructure
 
@@ -11,6 +11,15 @@ Last updated: 2026-03-07
 | Home Assistant | http://192.168.5.147:8123 | Auth via HA_TOKEN env var |
 | Generac PWRcell | On LAN, not yet in HA | HACS integration pending (bentastic27/ha-generac) |
 | Ollama | http://192.168.5.33:11434 | Local LLM for agent use |
+
+## 3D Printers
+
+| Printer | Build Volume | Notes |
+|---------|-------------|-------|
+| Creality Ender 5 Max | 400 × 400 × 400 mm | Main workhorse, large bed |
+| Creality K2 Plus | 350 × 350 × 350 mm | Multi-material, up to 4 colors, fast |
+
+STL output goes to the requesting agent's `output/` folder on the host.
 
 ## Devices & Integrations
 
